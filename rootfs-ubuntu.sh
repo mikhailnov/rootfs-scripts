@@ -53,6 +53,9 @@ systemd-nspawn -q -D "$dest" apt autoremove --purge -y --allow-remove-essential 
 	lxd "lxc*" pollinate \
 	ufw \
 	rsyslog
+systemd-nspawn -q -D "$dest" apt update
+systemd-nspawn -q -D "$dest" apt dist-upgrade -y
+systemd-nspawn -q -D "$dest" apt install -y ncdu
 
 rm -rf "$rootfs"
 echo ""
