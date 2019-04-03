@@ -38,11 +38,10 @@ sed -i -e '/motd/d' "$dest/etc/pam.d/login"
 
 disable="ebtables rsync systemd-timesyncd"
 disable="$disable networkd-dispatcher systemd-networkd systemd-networkd-wait-online systemd-resolved"
+( set +f
 for s in $disable; do
-	( set +f
 	rm -f "$dest/etc/systemd/system/"*.target.wants"/$s.service" "$dest"/etc/rc[S5].d/S??"$s"
-	)
-done
+done )
 
 sed -i -e 's,archive.ubuntu.com,mirror.timeweb.ru,g' "$dest/etc/apt/sources.list"
 # software-properties-common (add-apt-repository) will be delete afterwards with python3
