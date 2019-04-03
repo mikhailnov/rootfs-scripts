@@ -47,6 +47,7 @@ sed -i -e 's,archive.ubuntu.com,mirror.timeweb.ru,g' "$dest/etc/apt/sources.list
 # software-properties-common (add-apt-repository) will be delete afterwards with python3
 if [ "$ADD_PPA" != 0 ]; then systemd-nspawn -q -D "$dest" add-apt-repository ppa:mikhailnov/utils -y -n; fi
 systemd-nspawn -q -D "$dest" apt update
+systemd-nspawn -q -D "$dest" apt dist-upgrade -y
 # we don't need these packages in systemd-nspawn
 # polkit is potentially insecure and is not needed
 # see dpkg -l and systemctl list-unit-files | grep enabled to find not needed packages
@@ -55,7 +56,7 @@ systemd-nspawn -q -D "$dest" apt autoremove --purge -y --allow-remove-essential 
 	cloud-guest-utils "cloud-init*" \
 	snapd \
 	"command-not-found*" \
-	xfsprogs "btrfs-*" "ntfs-*" "initramfs*" e2fsprogs lvm2 open-iscsi mdadm \
+	xfsprogs "btrfs-*" "ntfs-*" "initramfs*" "e2fsprogs*" lvm2 open-iscsi mdadm \
 	unattended-upgrades \
 	irqbalance \
 	"lxd*" "lxc*" pollinate \
@@ -67,7 +68,6 @@ systemd-nspawn -q -D "$dest" apt autoremove --purge -y --allow-remove-essential 
 	"perl-modules-5.*" \
 	"libx11*"
 
-systemd-nspawn -q -D "$dest" apt dist-upgrade -y
 # DEBIAN_FRONTEND=noninteractive for setting default values for questions asked by localpurge install scripts
 systemd-nspawn -q -D "$dest" env DEBIAN_FRONTEND=noninteractive apt install -y ncdu localepurge
 if ! grep -q "ru_RU.UTF-8" "$dest/etc/locale.nopurge"; then echo "ru_RU.UTF-8" >> "$dest/etc/locale.nopurge"; fi
