@@ -39,6 +39,9 @@ for s in $disable; do
 	rm -f "$dest/etc/systemd/system/"*.target.wants"/$s.service" "$dest"/etc/rc[S5].d/S??"$s"
 	)
 done
+
+sed -i -e 's,archive.ubuntu.com,mirror.timeweb.ru,g' "$dest/etc/apt/sources.list"
+systemd-nspawn -q -D "$dest" apt update
 # we don't need these packages in systemd-nspawn
 # polkit is potentially insecure and is not needed
 # see dpkg -l and systemctl list-unit-files | grep enabled to find not needed packages
@@ -53,7 +56,6 @@ systemd-nspawn -q -D "$dest" apt autoremove --purge -y --allow-remove-essential 
 	lxd "lxc*" pollinate \
 	ufw \
 	rsyslog
-systemd-nspawn -q -D "$dest" apt update
 systemd-nspawn -q -D "$dest" apt dist-upgrade -y
 systemd-nspawn -q -D "$dest" apt install -y ncdu
 
