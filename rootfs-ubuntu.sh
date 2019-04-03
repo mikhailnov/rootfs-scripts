@@ -28,16 +28,31 @@ cp "$dest/etc/shadow" "$dest/etc/shadow.bak"
 sed '/^root:/ s|\*||' -i "$dest/etc/shadow"
 cp "$dest/etc/securetty" "$dest/etc/securetty.bak"
 #rm "$dest/etc/resolv.conf" "$dest/etc/securetty"
+# disable apport
+cp -v "$dest/etc/default/apport" "$dest/etc/default/apport.bak"
+sed -i -e 's,enabled=1,enabled=0,g' "$dest/etc/default/apport"
 
-disable="ebtables rsync systemd-timesyncd snapd snapd.seeded"
+disable="ebtables rsync systemd-timesyncd"
 disable="$disable networkd-dispatcher systemd-networkd systemd-networkd-wait-online systemd-resolved"
 for s in $disable; do
 	( set +f
 	rm -f "$dest/etc/systemd/system/"*.target.wants"/$s.service" "$dest"/etc/rc[S5].d/S??"$s"
 	)
 done
+# we don't need these packages in systemd-nspawn
 # polkit is potentially insecure and is not needed
-systemd-nspawn -q -D "$dest" apt autoremove --purge -y "libpolkit*"
+# see dpkg -l and systemctl list-unit-files | grep enabled to find not needed packages
+systemd-nspawn -q -D "$dest" apt autoremove --purge -y --allow-remove-essential \
+	"libpolkit*" \
+	cloud-guest-utils "cloud-init*" \
+	snapd \
+	"command-not-found*" \
+	xfsprogs "btrfs-*" e2fsprogs lvm2 open-iscsi \
+	unattended-upgrades \
+	irqbalance \
+	lxd "lxc*" pollinate \
+	ufw \
+	rsyslog
 
 rm -rf "$rootfs"
 echo ""
