@@ -50,7 +50,7 @@ systemd-nspawn -q -D "$dest" apt autoremove --purge -y --allow-remove-essential 
 	cloud-guest-utils "cloud-init*" \
 	snapd \
 	"command-not-found*" \
-	xfsprogs "btrfs-*" e2fsprogs lvm2 open-iscsi \
+	xfsprogs "btrfs-*" "ntfs-*" "initramfs*" e2fsprogs lvm2 open-iscsi \
 	unattended-upgrades \
 	irqbalance \
 	lxd "lxc*" pollinate \
