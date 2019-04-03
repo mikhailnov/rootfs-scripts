@@ -5,6 +5,7 @@ set -xefu
 
 CODENAME="${CODENAME:-bionic}"
 ARCH="${ARCH:-amd64}"
+ADD_PPA="${ADD_PPA:-1}"
 
 if [ "$UID" -ne 0 ]; then
 	echo "run this script as root" >&2
@@ -44,6 +45,8 @@ for s in $disable; do
 done
 
 sed -i -e 's,archive.ubuntu.com,mirror.timeweb.ru,g' "$dest/etc/apt/sources.list"
+# software-properties-common (add-apt-repository) will be delete afterwards with python3
+if [ "$ADD_PPA" != 0 ]; then systemd-nspawn -q -D "$dest" add-apt-repository ppa:mikhailnov/utils -y -n; fi
 systemd-nspawn -q -D "$dest" apt update
 # we don't need these packages in systemd-nspawn
 # polkit is potentially insecure and is not needed
