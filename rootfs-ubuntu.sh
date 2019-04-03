@@ -29,8 +29,11 @@ sed '/^root:/ s|\*||' -i "$dest/etc/shadow"
 cp "$dest/etc/securetty" "$dest/etc/securetty.bak"
 #rm "$dest/etc/resolv.conf" "$dest/etc/securetty"
 # disable apport
-cp -v "$dest/etc/default/apport" "$dest/etc/default/apport.bak"
+cp "$dest/etc/default/apport" "$dest/etc/default/apport.bak"
 sed -i -e 's,enabled=1,enabled=0,g' "$dest/etc/default/apport"
+# disable motd
+cp "$dest/etc/pam.d/login" "$dest/etc/pam.d/login.bak"
+sed -i -e '/motd/d' "$dest/etc/pam.d/login"
 
 disable="ebtables rsync systemd-timesyncd"
 disable="$disable networkd-dispatcher systemd-networkd systemd-networkd-wait-online systemd-resolved"
@@ -50,14 +53,29 @@ systemd-nspawn -q -D "$dest" apt autoremove --purge -y --allow-remove-essential 
 	cloud-guest-utils "cloud-init*" \
 	snapd \
 	"command-not-found*" \
-	xfsprogs "btrfs-*" "ntfs-*" "initramfs*" e2fsprogs lvm2 open-iscsi \
+	xfsprogs "btrfs-*" "ntfs-*" "initramfs*" e2fsprogs lvm2 open-iscsi mdadm \
 	unattended-upgrades \
 	irqbalance \
-	lxd "lxc*" pollinate \
+	"lxd*" "lxc*" pollinate \
 	ufw \
-	rsyslog
+	rsyslog \
+	"vim*" \
+	"python3*" "libpython3*" \
+	"git*" \
+	"perl-modules-5.*" \
+	"libx11*"
+
 systemd-nspawn -q -D "$dest" apt dist-upgrade -y
-systemd-nspawn -q -D "$dest" apt install -y ncdu
+# DEBIAN_FRONTEND=noninteractive for setting default values for questions asked by localpurge install scripts
+systemd-nspawn -q -D "$dest" env DEBIAN_FRONTEND=noninteractive apt install -y ncdu localepurge
+if ! grep -q "ru_RU.UTF-8" "$dest/etc/locale.nopurge"; then echo "ru_RU.UTF-8" >> "$dest/etc/locale.nopurge"; fi
+# now delete unneeded locales from /usr/share/locale/ and /usr/share/man/
+sed -i -e 's,^USE_DPKG,#USE_DPKG,g' "$dest/etc/locale.nopurge"
+systemd-nspawn -q -D "$dest" localepurge
+# restore automatic removel on new packages installations
+sed -i -e 's,^#USE_DPKG,USE_DPKG,g' "$dest/etc/locale.nopurge"
+# save about 100 MB, can be restored by running apt update
+rm -fr "$dest/var/lib/apt/" "$dest/var/cache/apt/"
 
 rm -rf "$rootfs"
 echo ""
