@@ -23,6 +23,7 @@ mkdir -p "$dest"
 wget "http://cloud-images.ubuntu.com/${CODENAME}/current/${CODENAME}-server-cloudimg-amd64-root.tar.xz" -O "$rootfs"
 tar -xaf "$rootfs" -C "$dest"
 
+# allow logging in as root with no password via tty (systemd-nspawn)
 cp "$dest/etc/shadow" "$dest/etc/shadow.bak"
 sed '/^root:/ s|\*||' -i "$dest/etc/shadow"
 cp "$dest/etc/securetty" "$dest/etc/securetty.bak"
@@ -35,8 +36,8 @@ for s in $disable; do
 	rm -f "$dest/etc/systemd/system/"*.target.wants"/$s.service" "$dest"/etc/rc[S5].d/S??"$s"
 	)
 done
-# ssh and iscsi cause startup to hang
-#systemd-nspawn -q -D "$dest" apt-get -qq purge -y openssh-server open-iscsi
+# polkit is potentially insecure and is not needed
+systemd-nspawn -q -D "$dest" apt autoremove --purge -y "libpolkit*"
 
 rm -rf "$rootfs"
 echo ""
