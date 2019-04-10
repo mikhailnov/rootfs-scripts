@@ -23,6 +23,13 @@ rootfs="${rootfs:-$(mktemp)}"
 mkdir -p "$dest"
 wget "http://cloud-images.ubuntu.com/${CODENAME}/current/${CODENAME}-server-cloudimg-amd64-root.tar.xz" -O "$rootfs"
 tar -xaf "$rootfs" -C "$dest"
+rm -f "$dest/etc/resolv.conf"
+cat > "$dest/etc/resolv.conf" <<'EOF'
+nameserver 8.8.8.8
+nameserver 77.88.8.8
+nameserver 8.8.4.4
+nameserver 77.88.8.1
+EOF
 
 # allow logging in as root with no password via tty (systemd-nspawn)
 cp "$dest/etc/shadow" "$dest/etc/shadow.bak"
