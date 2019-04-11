@@ -41,7 +41,7 @@ systemd-nspawn -q -D "$dest" \
 systemd-nspawn -q -D "$dest" \
 	chmod 700 -R /var/lib/gitea/
 systemd-nspawn -q -D "$dest" \
-	chmod git:root /etc/gitea/app.ini
+	chown git:root /etc/gitea/app.ini
 systemd-nspawn -q -D "$dest" \
 	systemctl enable gitea.service
 
