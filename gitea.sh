@@ -43,7 +43,7 @@ systemd-nspawn -q -D "$dest" \
 systemd-nspawn -q -D "$dest" \
 	chown git:root /etc/gitea/app.ini
 systemd-nspawn -q -D "$dest" \
-	systemctl enable gitea.service
+	systemctl enable gitea.service ssh.service
 
 echo ""
 echo "Gitea container (rootfs) has been created in $dest"
