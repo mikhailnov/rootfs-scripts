@@ -21,7 +21,7 @@ dest="${dest:-$1}"
 rootfs="${rootfs:-$(mktemp)}"
 
 mkdir -p "$dest"
-wget "http://cloud-images.ubuntu.com/${CODENAME}/current/${CODENAME}-server-cloudimg-amd64-root.tar.xz" -O "$rootfs"
+wget "http://cloud-images.ubuntu.com/${CODENAME}/current/${CODENAME}-server-cloudimg-${ARCH}-root.tar.xz" -O "$rootfs"
 tar -xaf "$rootfs" -C "$dest"
 rm -f "$dest/etc/resolv.conf"
 cat > "$dest/etc/resolv.conf" <<'EOF'
