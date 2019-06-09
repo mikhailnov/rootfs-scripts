@@ -1,7 +1,6 @@
 #!/bin/sh
 # Creates a systemd-nspawn container with Ubuntu
 # Fork of https://gist.github.com/sfan5/52aa53f5dca06ac3af30455b203d3404
-set -xefu
 
 CODENAME="${CODENAME:-bionic}"
 ARCH="${ARCH:-amd64}"
@@ -11,6 +10,8 @@ if [ "$UID" -ne 0 ]; then
 	echo "run this script as root" >&2
 	exit 1
 fi
+
+set -xefu
 
 if [ -z "$1" ]; then
 	echo "Usage: $0 <destination>" >&2
