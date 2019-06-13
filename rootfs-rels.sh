@@ -158,7 +158,8 @@ mkdir -p --mode=0755 "$target"/var/cache/ldconfig
 
 echo "nameserver 8.8.8.8" >> "$target"/etc/resolv.conf
 # yum fails to bootstrap with systemd at first
-chroot "$target" yum install systemd -y
+systemd-nspawn -D "$target" -q yum install systemd systemd-networkd iproute dhclient -y
+systemd-nspawn -D "$target" -q systemctl enable systemd-networkd
 
 # Allow root login into containers
 find "$target"/etc/pam.d -type f -exec sed -i '/pam_securetty.so/d' {} \;
