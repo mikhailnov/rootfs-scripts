@@ -18,18 +18,20 @@ OPTIONS:
                    The default is "Core".
   -y <yumconf>     The path to the yum config to install packages from. The
                    default is /etc/yum.conf for Centos/RHEL and /etc/dnf/dnf.conf for Fedora
+  -t <path>        The path to the target directory where to put rootfs
+  -v <version>     Version of ROSA Linux Enterprise Server (73, 75 etc.)
 EOOPTS
     exit 1
 }
 
 # option defaults
-yum_config=/etc/yum.conf
+yum_config=/etc/yum/yum.conf
 if [ -f /etc/dnf/dnf.conf ] && command -v dnf &> /dev/null; then
 	yum_config=/etc/dnf/dnf.conf
 	alias yum=dnf
 fi
 install_groups="basesystem yum rosa-release-server bash which hostname"
-while getopts ":y:p:g:h" opt; do
+while getopts ":y:p:g:t:h" opt; do
     case $opt in
         y)
             yum_config=$OPTARG
@@ -42,6 +44,12 @@ while getopts ":y:p:g:h" opt; do
             ;;
         g)
             install_groups="$OPTARG"
+            ;;
+        v)
+            rels_version="$OPTARG"
+            ;;
+        t)
+            target="$OPTARG"
             ;;
         \?)
             echo "Invalid option: -$OPTARG"
@@ -56,7 +64,37 @@ if [[ -z $name ]]; then
     usage
 fi
 
-target=$(mktemp -d --tmpdir $(basename $0).XXXXXX)
+target="${target:-$(mktemp -d --tmpdir $(basename $0).XXXXXX)}"
+relse_version="${rels_version:-73}"
+
+if [ ! -d "$target" ]; then mkdir -p "$target"; fi
+
+mkdir -p "$target"/etc/yum.repos.d/
+cat > "$target"/etc/yum.repos.d/rels.conf <<EOF
+[base]
+name=ROSA Enterprise Linux Server - Base
+baseurl=http://abf-downloads.rosalinux.ru/rosa-server${rels_version}/repository/$basearch/base/release
+enabled=1
+gpgcheck=0
+
+[base-updates]
+name=ROSA Enterprise Linux Server - Base Updates
+baseurl=http://abf-downloads.rosalinux.ru/rosa-server${rels_version}/repository/$basearch/base/updates
+enabled=1
+gpgcheck=0
+
+[extra]
+name=ROSA Enterprise Linux Server - Extra
+baseurl=http://abf-downloads.rosalinux.ru/rosa-server${rels_version}/repository/$basearch/extra/release
+enabled=1
+gpgcheck=0
+
+[extra-updates]
+name=ROSA Enterprise Linux Server - Extra Updates
+baseurl=http://abf-downloads.rosalinux.ru/rosa-server${rels_version}/repository/$basearch/extra/updates
+enabled=1
+gpgcheck=0
+EOF
 
 set -x
 
@@ -89,32 +127,6 @@ then
     yum -c "$yum_config" --installroot="$target" --releasever=/ --setopt=tsflags=nodocs \
         --setopt=group_package_types=mandatory -y install "$install_packages"
 fi
-
-cat > "$target"/etc/yum.repos.d/rels.conf <<EOF
-[base]
-name=ROSA Enterprise Linux Server - Base
-baseurl=http://abf-downloads.rosalinux.ru/rosa-server75/repository/$basearch/base/release
-enabled=1
-gpgcheck=0
-
-[base-updates]
-name=ROSA Enterprise Linux Server - Base Updates
-baseurl=http://abf-downloads.rosalinux.ru/rosa-server75/repository/$basearch/base/updates
-enabled=1
-gpgcheck=0
-
-[extra]
-name=ROSA Enterprise Linux Server - Extra
-baseurl=http://abf-downloads.rosalinux.ru/rosa-server75/repository/$basearch/extra/release
-enabled=1
-gpgcheck=0
-
-[extra-updates]
-name=ROSA Enterprise Linux Server - Extra Updates
-baseurl=http://abf-downloads.rosalinux.ru/rosa-server75/repository/$basearch/extra/updates
-enabled=1
-gpgcheck=0
-EOF
 
 yum -c "$yum_config" --installroot="$target" -y clean all
 
@@ -155,8 +167,10 @@ if [ -z "$version" ]; then
     version=$name
 fi
 
-tar --numeric-owner -c -C "$target" . | docker import - $name:latest
+if [ "$DOCKER" = 1 ]; then
+    tar --numeric-owner -c -C "$target" . | docker import - $name:latest
+    docker run -i -t --rm $name:latest /bin/bash -c 'echo success'
+    rm -rf "$target"
+    exit
+fi
 
-docker run -i -t --rm $name:latest /bin/bash -c 'echo success'
-
-rm -rf "$target"
