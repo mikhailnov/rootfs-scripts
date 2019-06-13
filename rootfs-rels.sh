@@ -30,8 +30,8 @@ if [ -f /etc/dnf/dnf.conf ] && command -v dnf &> /dev/null; then
 	yum_config=/etc/dnf/dnf.conf
 	alias yum=dnf
 fi
-install_groups="basesystem yum rosa-release-server bash which hostname"
-while getopts ":y:p:g:t:h" opt; do
+install_groups="basesystem yum rosa-release-server bash which hostname passwd"
+while getopts ":y:p:g:v:t:h" opt; do
     case $opt in
         y)
             yum_config=$OPTARG
@@ -143,7 +143,7 @@ rm -rf "$target"/usr/share/{man,doc,info,gnome/help}
 #  cracklib
 rm -rf "$target"/usr/share/cracklib
 #  i18n
-rm -rf "$target"/usr/share/i18n
+#rm -rf "$target"/usr/share/i18n
 #  yum cache
 rm -rf "$target"/var/cache/yum
 mkdir -p --mode=0755 "$target"/var/cache/yum
@@ -152,6 +152,16 @@ rm -rf "$target"/sbin/sln
 #  ldconfig
 rm -rf "$target"/etc/ld.so.cache "$target"/var/cache/ldconfig
 mkdir -p --mode=0755 "$target"/var/cache/ldconfig
+
+echo "nameserver 8.8.8.8" >> "$target"/etc/resolv.conf
+# yum fails to bootstrap with systemd at first
+chroot "$target" yum install systemd -y
+
+# Allow root login into containers
+find "$target"/etc/pam.d -type f -exec sed -i '/pam_securetty.so/d' {} \;
+# passwd works only after installing systemd,
+# otherwise does not find /etc/login.defs, at least in RELS 7.3 (!)
+chroot "$target" passwd -d root
 
 version=
 for file in "$target"/etc/{redhat,system}-release
