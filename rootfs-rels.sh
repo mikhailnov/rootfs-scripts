@@ -20,18 +20,15 @@ OPTIONS:
                    default is /etc/yum.conf for Centos/RHEL and /etc/dnf/dnf.conf for Fedora
   -t <path>        The path to the target directory where to put rootfs
   -v <version>     Version of ROSA Linux Enterprise Server (73, 75 etc.)
+  -a <arch>        Architecture (x86_64, i686)
+Example:
+  ./rootfs-rels.sh -t /var/lib/machines/rels73 -v 73 rels73
 EOOPTS
     exit 1
 }
 
-# option defaults
-yum_config=/etc/yum/yum.conf
-if [ -f /etc/dnf/dnf.conf ] && command -v dnf &> /dev/null; then
-	yum_config=/etc/dnf/dnf.conf
-	alias yum=dnf
-fi
 install_groups="basesystem yum rosa-release-server bash which hostname passwd"
-while getopts ":y:p:g:v:t:h" opt; do
+while getopts ":y:p:g:v:a:t:h" opt; do
     case $opt in
         y)
             yum_config=$OPTARG
@@ -51,6 +48,9 @@ while getopts ":y:p:g:v:t:h" opt; do
         t)
             target="$OPTARG"
             ;;
+        a)
+            basearch="$OPTARG"
+            ;;
         \?)
             echo "Invalid option: -$OPTARG"
             usage
@@ -65,7 +65,8 @@ if [[ -z $name ]]; then
 fi
 
 target="${target:-$(mktemp -d --tmpdir $(basename $0).XXXXXX)}"
-relse_version="${rels_version:-73}"
+rels_version="${rels_version:-73}"
+basearch="${basearch:-x86_64}"
 
 if [ ! -d "$target" ]; then mkdir -p "$target"; fi
 
@@ -95,6 +96,8 @@ baseurl=http://abf-downloads.rosalinux.ru/rosa-server${rels_version}/repository/
 enabled=1
 gpgcheck=0
 EOF
+
+yum_config="${yum_config:-"$target/etc/yum.repos.d/rels.conf"}"
 
 set -x
 
