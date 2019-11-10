@@ -6,7 +6,7 @@ CODENAME="${CODENAME:-bionic}"
 ARCH="${ARCH:-amd64}"
 ADD_PPA="${ADD_PPA:-1}"
 
-if [ "$UID" -ne 0 ]; then
+if [ "$(id -u)" -ne 0 ]; then
 	echo "run this script as root" >&2
 	exit 1
 fi
