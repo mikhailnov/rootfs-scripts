@@ -44,6 +44,9 @@ systemd-nspawn -q -D "$dest" \
 	chmod 700 -R /var/lib/gitea/
 systemd-nspawn -q -D "$dest" \
 	chown git:root /etc/gitea/app.ini
+# generate ssh host keys
+systemd-nspawn -q -D "$dest" \
+	dpkg-reconfigure openssh-server
 systemd-nspawn -q -D "$dest" \
 	systemctl enable gitea.service ssh.service
 
