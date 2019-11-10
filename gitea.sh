@@ -27,6 +27,8 @@ sed -i -e 's,TIME = 86400,TIME = 604800,g' "${dest}/etc/gitea/app.ini"
 sed -i -e 's,PATH = data/gitea.db,PATH = /var/lib/gitea/gitea.db,g' "${dest}/etc/gitea/app.ini"
 sed -i -e 's,HTTP_PORT = 3000,HTTP_PORT = 3250,g' "${dest}/etc/gitea/app.ini"
 
+sed -i -e 's,^#Port 22,Port 3251,g' "$dest/etc/ssh/sshd_config"
+
 # https://golb.hplar.ch/2018/06/self-hosted-git-server.html
 systemd-nspawn -q -D "$dest" \
 	adduser --system \
