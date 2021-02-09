@@ -2,7 +2,7 @@
 # Creates a systemd-nspawn container with Ubuntu
 # Fork of https://gist.github.com/sfan5/52aa53f5dca06ac3af30455b203d3404
 
-CODENAME="${CODENAME:-bionic}"
+CODENAME="${CODENAME:-focal}"
 ARCH="${ARCH:-amd64}"
 ADD_PPA="${ADD_PPA:-1}"
 
