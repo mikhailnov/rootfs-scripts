@@ -35,7 +35,7 @@ EOF
 # allow logging in as root with no password via tty (systemd-nspawn)
 cp "$dest/etc/shadow" "$dest/etc/shadow.bak"
 sed '/^root:/ s|\*||' -i "$dest/etc/shadow"
-cp "$dest/etc/securetty" "$dest/etc/securetty.bak"
+cp "$dest/etc/securetty" "$dest/etc/securetty.bak" || :
 #rm "$dest/etc/resolv.conf" "$dest/etc/securetty"
 # disable apport
 cp "$dest/etc/default/apport" "$dest/etc/default/apport.bak"
