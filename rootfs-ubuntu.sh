@@ -2,9 +2,9 @@
 # Creates a systemd-nspawn container with Ubuntu
 # Fork of https://gist.github.com/sfan5/52aa53f5dca06ac3af30455b203d3404
 
-CODENAME="${CODENAME:-focal}"
+CODENAME="${CODENAME:-noble}"
 ARCH="${ARCH:-amd64}"
-ADD_PPA="${ADD_PPA:-1}"
+ADD_PPA="${ADD_PPA:-0}"
 
 if [ "$(id -u)" -ne 0 ]; then
 	echo "run this script as root" >&2
